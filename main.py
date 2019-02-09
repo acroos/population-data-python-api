@@ -28,7 +28,7 @@ def population(args):
         if args.date:
             selected_args.append('date')
 
-        print(f'Invalid argument selection: [{", ".join(selected_args)}]')
+        print(f'Invalid argument combination: [{", ".join(selected_args)}]')
         return
     
     print_data = ",\n".join(map(lambda x : str(x), data))

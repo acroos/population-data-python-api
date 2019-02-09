@@ -61,9 +61,24 @@ class App(QWidget):
         age = self.ageEdit.text()
         date = self.dateEdit.text()
 
+        try:
+            data = self.api.population(year, country, age, date)
+        except Exception:
+            selected_args = []
+            if year:
+                selected_args.append('year')
+            if country:
+                selected_args.append('country')
+            if age:
+                selected_args.append('age')
+            if date:
+                selected_args.append('date')
+
+            self.showErrorMessage(f'Invalid argument combination: [{", ".join(selected_args)}]')
+            return
+
         used_fields = list(filter(lambda x : x != '', [year, country, age, date]))
         title = f'Population Table: [{",".join(used_fields)}]'
-        data = self.api.population(year, country, age, date)
 
         self.table = Table(title, data)
         self.table.show()
@@ -104,6 +119,8 @@ class Table(QWidget):
             self.populateYearTable(data)
 
     def populateDateTable(self, data):
+        self.setMinimumWidth(200)
+        self.setMinimumHeight((len(data) + 1) * 40)
         self.table.setColumnCount(2)
         self.table.setItem(0, 0, QTableWidgetItem("Date", 2))
         self.table.setItem(0, 1, QTableWidgetItem("Population"))
@@ -115,6 +132,9 @@ class Table(QWidget):
             row += 1
     
     def populateYearTable(self, data):
+        self.setMinimumWidth(700)
+        minHeight = min([800, (len(data) + 1) * 40])
+        self.setMinimumHeight(minHeight)
         self.table.setColumnCount(6)
         self.table.setItem(0, 0, QTableWidgetItem("Year"))
         self.table.setItem(0, 1, QTableWidgetItem("Country"))
