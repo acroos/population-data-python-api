@@ -1,10 +1,12 @@
 import urllib.request
 from requests.utils import requote_uri
 import json
+from population_data_factory import PopulationDataFactory
 
 class Api:
     def __init__(self):
         self.base_url = 'http://api.population.io:80/1.0'
+
     def countries(self):
         endpoint = '/countries'
         country_json = self.__fetch_endpoint(endpoint)
@@ -12,27 +14,35 @@ class Api:
 
     def population_by_year_and_age(self, year, age):
         endpoint = f'/population/{year}/aged/{age}'
-        pass
+        return self.__year_data_from_endpoint(endpoint)
     
     def population_by_year_country_and_age(self, year, country, age):
         endpoint = f'/population/{year}/{country}/{age}/'
-        pass
+        return self.__year_data_from_endpoint(endpoint)
     
     def population_by_year_and_country(self, year, country):
         endpoint = f'/population/{year}/{country}/'
-        pass
+        return self.__year_data_from_endpoint(endpoint)
 
     def population_by_country_and_age(self, country, age):
         endpoint = f'/population/{country}/{age}/'
-        pass
+        return self.__year_data_from_endpoint(endpoint)
 
     def population_by_country_and_date(self, country, date):
         endpoint = f'/population/{country}/{date}/'
-        pass
+        return self.__date_data_from_endpoint(endpoint)
 
     def population_by_country_today_and_tomorrow(self, country):
         endpoint = f'/population/{country}/today-and-tomorrow/'
-        pass
+        return self.__date_data_from_endpoint(endpoint)
+
+    def __year_data_from_endpoint(self, endpoint):
+        raw_data = self.__fetch_endpoint(endpoint)
+        return PopulationDataFactory().construct_year_data_list(raw_data)
+
+    def __date_data_from_endpoint(self, endpoint):
+        raw_data = self.__fetch_endpoint(endpoint)
+        return PopulationDataFactory().construct_date_data_list(raw_data)
 
     def __fetch_endpoint(self, endpoint):
         full_url = requote_uri(self.base_url + endpoint)
