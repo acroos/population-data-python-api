@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+
+import sys
+
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QWidget, QDesktopWidget, QPushButton, QLabel, QLineEdit, QMessageBox,
+    QTableWidget,QTableWidgetItem, QVBoxLayout, QGridLayout, QApplication)
+
+from api import Api
+from date_population_data import DatePopulationData
+from year_population_data import YearPopulationData
+
+class App(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.api = Api()
+        self.initUI()
+    
+    def initUI(self):
+        countryLabel = QLabel('Country')
+        yearLabel = QLabel('Year')
+        ageLabel = QLabel('Age')
+        dateLabel = QLabel('Date (yyyy-mm-dd)')
+
+        self.countryEdit = QLineEdit()
+        self.yearEdit = QLineEdit()
+        self.ageEdit = QLineEdit()
+        self.dateEdit = QLineEdit()
+
+        searchButton = QPushButton('Search')
+        searchButton.clicked.connect(self.buttonClicked)
+
+        grid = QGridLayout()
+        grid.setSpacing(15)
+
+        grid.addWidget(countryLabel, 1, 0)
+        grid.addWidget(self.countryEdit, 1, 1)
+
+        grid.addWidget(yearLabel, 2, 0)
+        grid.addWidget(self.yearEdit, 2, 1)
+
+        grid.addWidget(ageLabel, 3, 0)
+        grid.addWidget(self.ageEdit, 3, 1)
+        
+        grid.addWidget(dateLabel, 4, 0)
+        grid.addWidget(self.dateEdit, 4, 1)
+
+        grid.addWidget(searchButton, 5, 0, 1, 2)
+        
+        self.setLayout(grid)
+
+        self.setWindowIcon(QIcon('./map.png'))
+        self.setWindowTitle('World Population API')
+        self.setMinimumWidth(500)
+        self.center()
+        self.show()
+        
+    def buttonClicked(self):
+        year = self.yearEdit.text()
+        country = self.countryEdit.text()
+        age = self.ageEdit.text()
+        date = self.dateEdit.text()
+
+        used_fields = list(filter(lambda x : x != '', [year, country, age, date]))
+        title = f'Population Table: [{",".join(used_fields)}]'
+        data = self.api.population(year, country, age, date)
+
+        self.table = Table(title, data)
+        self.table.show()
+        
+
+    def showErrorMessage(self, errorMessage):
+        QMessageBox.question(self, 'Error',
+            errorMessage, QMessageBox.Ok, QMessageBox.Ok)
+        
+    def center(self):    
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+ 
+
+class Table(QWidget):
+    def __init__(self, title, data):
+        super().__init__()
+        self.__title = title
+        self.populateTable(data)
+        self.initUI()
+    
+    def initUI(self):
+        self.setWindowTitle(self.__title)
+        self.setWindowIcon(QIcon('./map.png'))
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.table) 
+        self.setLayout(self.layout) 
+        self.show()
+
+    def populateTable(self, data):
+        self.table = QTableWidget()
+        self.table.setRowCount(len(data) + 1)
+        if(type(data[0]) is DatePopulationData):
+            self.populateDateTable(data)
+        elif(type(data[0]) is YearPopulationData):
+            self.populateYearTable(data)
+
+    def populateDateTable(self, data):
+        self.table.setColumnCount(2)
+        self.table.setItem(0, 0, QTableWidgetItem("Date", 2))
+        self.table.setItem(0, 1, QTableWidgetItem("Population"))
+
+        row = 1
+        for dateData in data:
+            self.table.setItem(row, 0, QTableWidgetItem(dateData.fetch_date()))
+            self.table.setItem(row, 1, QTableWidgetItem(str(dateData.fetch_population())))
+            row += 1
+    
+    def populateYearTable(self, data):
+        self.table.setColumnCount(6)
+        self.table.setItem(0, 0, QTableWidgetItem("Year"))
+        self.table.setItem(0, 1, QTableWidgetItem("Country"))
+        self.table.setItem(0, 2, QTableWidgetItem("Age"))
+        self.table.setItem(0, 3, QTableWidgetItem("Female Pop."))
+        self.table.setItem(0, 4, QTableWidgetItem("Male Pop."))
+        self.table.setItem(0, 5, QTableWidgetItem("Total Pop."))
+
+        row = 1
+        for yearData in data:
+            self.table.setItem(row, 0, QTableWidgetItem(str(yearData.fetch_year())))
+            self.table.setItem(row, 1, QTableWidgetItem(str(yearData.fetch_country())))
+            self.table.setItem(row, 2, QTableWidgetItem(str(yearData.fetch_age())))
+            self.table.setItem(row, 3, QTableWidgetItem(str(yearData.fetch_female_population())))
+            self.table.setItem(row, 4, QTableWidgetItem(str(yearData.fetch_male_population())))
+            self.table.setItem(row, 5, QTableWidgetItem(str(yearData.fetch_total_population())))
+            row += 1
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())
