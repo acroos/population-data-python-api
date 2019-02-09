@@ -8,3 +8,6 @@ class DatePopulationData:
 
     def fetch_population(self):
         return self.__population
+
+    def __str__(self):
+        return f"{{\n\tDate: {self.__date},\n\tPopulation: {self.__population}\n}}"

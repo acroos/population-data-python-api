@@ -24,3 +24,6 @@ class YearPopulationData:
 
     def fetch_year(self):
         return self.__year
+
+    def __str__(self):
+        return f"{{\n\tCountry: {self.__country},\n\tYear: {self.__year},\n\tAge: {self.__age},\n\tFemales: {self.__females},\n\tMales: {self.__males},\n\tTotal: {self.__total}\n}}"

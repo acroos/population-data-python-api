@@ -13,7 +13,7 @@ class Api:
         return country_json['countries']
 
     def population_by_year_and_age(self, year, age):
-        endpoint = f'/population/{year}/aged/{age}'
+        endpoint = f'/population/{year}/aged/{age}/'
         return self.__year_data_from_endpoint(endpoint)
     
     def population_by_year_country_and_age(self, year, country, age):
@@ -42,7 +42,13 @@ class Api:
 
     def __date_data_from_endpoint(self, endpoint):
         raw_data = self.__fetch_endpoint(endpoint)
-        return PopulationDataFactory().construct_date_data_list(raw_data)
+        total_population_data = raw_data['total_population']
+
+        ## HACK: for one endpoint, the data is a list, for the other it's a single JSON object.
+        ## It's safe enough to go ahead and just foce the single object to be in a list
+        if (type(total_population_data) is not list):
+            total_population_data = [total_population_data]
+        return PopulationDataFactory().construct_date_data_list(total_population_data)
 
     def __fetch_endpoint(self, endpoint):
         full_url = requote_uri(self.base_url + endpoint)

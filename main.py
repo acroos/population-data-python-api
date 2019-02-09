@@ -1,8 +1,49 @@
 from api import Api
+import argparse
 
 def main():
     population_api = Api()
-    pass
+
+    parser = argparse.ArgumentParser(description='Easily access population data from api.population.io')
+
+    parser.add_argument('--year', dest='year', help='The year to get population data for (Cannot be used with date)')
+    parser.add_argument('--country', dest='country', help='The country to get population data for (if used alone, will give data for today/tomorrow)')
+    parser.add_argument('--age', dest='age', help='The age to get population data for')
+    parser.add_argument('--date', dest='date', help='The date (yyyy-mm-dd) to get population data for (Can only be used with country). Valid dates are 2013-01-01 to 2022-12-31.')
+
+    args = parser.parse_args()
+
+    data = []
+    ## Decide which api method should be called based on which parameters are passed in
+    ## Be aggressive exiting if invalid combinations of args are passed
+    if(args.year and not args.country and args.age and not args.date):
+        data = population_api.population_by_year_and_age(args.year, args.age)
+    elif(args.year and args.country and args.age and not args.date):
+        data = population_api.population_by_year_country_and_age(args.year, args.country, args.age)
+    elif(args.year and args.country and not args.age and not args.date):
+        data = population_api.population_by_year_and_country(args.year, args.country)
+    elif(not args.year and args.country and args.age and not args.date):
+        data = population_api.population_by_country_and_age(args.country, args.age)
+    elif(not args.year and args.country and not args.age and args.date):
+        data = population_api.population_by_country_and_date(args.country, args.date)
+    elif(not args.year and args.country and not args.age and not args.date):
+        data = population_api.population_by_country_today_and_tomorrow(args.country)
+    else:
+        selected_args = []
+        if args.year:
+            selected_args.append('year')
+        if args.country:
+            selected_args.append('country')
+        if args.age:
+            selected_args.append('age')
+        if args.date:
+            selected_args.append('date')
+
+        print(f'Invalid argument selection: [{",".join(selected_args)}]')
+        return
+    
+    print_data = ",\n".join(map(lambda x : str(x), data))
+    print(print_data)
 
 if __name__ == "__main__":
     # execute only if run as a script
