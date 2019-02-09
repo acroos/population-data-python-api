@@ -12,6 +12,22 @@ class Api:
         country_json = self.__fetch_endpoint(endpoint)
         return country_json['countries']
 
+    def population(self, year=None, country=None, age=None, date=None):
+        if(year and not country and age and not date):
+            return self.population_by_year_and_age(year, age)
+        elif(year and country and age and not date):
+            return self.population_by_year_country_and_age(year, country, age)
+        elif(year and country and not age and not date):
+            return self.population_by_year_and_country(year, country)
+        elif(not year and country and age and not date):
+            return self.population_by_country_and_age(country, age)
+        elif(not year and country and not age and date):
+            return self.population_by_country_and_date(country, date)
+        elif(not year and country and not age and not date):
+            return self.population_by_country_today_and_tomorrow(country)
+        else:
+            raise Exception('Invalid options')
+
     def population_by_year_and_age(self, year, age):
         endpoint = f'/population/{year}/aged/{age}/'
         return self.__year_data_from_endpoint(endpoint)

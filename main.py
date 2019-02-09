@@ -11,19 +11,13 @@ def population(args):
     data = []
     ## Decide which api method should be called based on which parameters are passed in
     ## Be aggressive exiting if invalid combinations of args are passed
-    if(args.year and not args.country and args.age and not args.date):
-        data = population_api.population_by_year_and_age(args.year, args.age)
-    elif(args.year and args.country and args.age and not args.date):
-        data = population_api.population_by_year_country_and_age(args.year, args.country, args.age)
-    elif(args.year and args.country and not args.age and not args.date):
-        data = population_api.population_by_year_and_country(args.year, args.country)
-    elif(not args.year and args.country and args.age and not args.date):
-        data = population_api.population_by_country_and_age(args.country, args.age)
-    elif(not args.year and args.country and not args.age and args.date):
-        data = population_api.population_by_country_and_date(args.country, args.date)
-    elif(not args.year and args.country and not args.age and not args.date):
-        data = population_api.population_by_country_today_and_tomorrow(args.country)
-    else:
+    try:
+        data = population_api.population(
+            year=args.year,
+            country=args.country,
+            age=args.age,
+            date=args.date)
+    except Exception:
         selected_args = []
         if args.year:
             selected_args.append('year')
